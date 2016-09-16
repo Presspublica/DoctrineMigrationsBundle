@@ -69,6 +69,6 @@ class MigrationsGenerateDoctrineCommand extends GenerateCommand
             $path = null;
         }
     
-        return parent::execute($input, $output, $namespace, $path);
+        return parent::execute($input, $output, $namespace . "\\DoctrineMigrations", $path);
     }
 }
