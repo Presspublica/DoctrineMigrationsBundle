@@ -15,6 +15,7 @@
 namespace Doctrine\Bundle\MigrationsBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Command\DoctrineCommand as BaseCommand;
+use Doctrine\Bundle\MigrationsBundle\Migrations\BundleMigrationFinder;
 use Doctrine\DBAL\Migrations\Configuration\AbstractFileConfiguration;
 use Doctrine\DBAL\Migrations\Configuration\Configuration;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -30,6 +31,12 @@ abstract class DoctrineCommand extends BaseCommand
 {
     public static function configureMigrations(ContainerInterface $container, Configuration $configuration)
     {
+        $configuration->setMigrationsFinder(
+            new BundleMigrationFinder(
+                $container->get('kernel')
+            )
+        );
+
         if (!$configuration->getMigrationsDirectory()) {
             $dir = $container->getParameter('doctrine_migrations.dir_name');
             if (!@mkdir($dir, 0777, true) && !is_dir($dir)) {

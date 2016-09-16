@@ -21,6 +21,8 @@ use LogicException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * Command for generate migration classes by comparing your current database schema
@@ -39,10 +41,11 @@ class MigrationsDiffDoctrineCommand extends DiffCommand
             ->setName('doctrine:migrations:diff')
             ->addOption('em', null, InputOption::VALUE_OPTIONAL, 'The entity manager to use for this command.')
             ->addOption('shard', null, InputOption::VALUE_REQUIRED, 'The shard connection to use for this command.')
+            ->addArgument('bundle', null, InputOption::VALUE_REQUIRED, 'Bundle')
         ;
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output, $namespace = null, $path = null)
     {
         DoctrineCommandHelper::setApplicationEntityManager($this->getApplication(), $input->getOption('em'));
 
@@ -55,9 +58,27 @@ class MigrationsDiffDoctrineCommand extends DiffCommand
             $connection->connect($input->getOption('shard'));
         }
 
-        $configuration = $this->getMigrationConfiguration($input, $output);
-        DoctrineCommand::configureMigrations($this->getApplication()->getKernel()->getContainer(), $configuration);
+        /** @var ContainerInterface $container */
+        $container = $this->getApplication()->getKernel()->getContainer();
 
-        return parent::execute($input, $output);
+        $configuration = $this->getMigrationConfiguration($input, $output);
+        DoctrineCommand::configureMigrations($container, $configuration);
+
+        if ($bundle = $input->getArgument('bundle')) {
+            $bundles = $container->get('kernel')->getBundles();
+
+            /** @var Bundle $bundleObject */
+            $bundleObject = $bundles[$bundle];
+
+            $namespace = $bundleObject->getNamespace();
+
+            $path = $bundleObject->getPath() . DIRECTORY_SEPARATOR . 'DoctrineMigrations';
+
+        } else {
+            $namespace = null;
+            $path = null;
+        }
+
+        return parent::execute($input, $output, $namespace, $path);
     }
 }

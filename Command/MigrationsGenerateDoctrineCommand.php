@@ -37,10 +37,11 @@ class MigrationsGenerateDoctrineCommand extends GenerateCommand
             ->addOption('db', null, InputOption::VALUE_REQUIRED, 'The database connection to use for this command.')
             ->addOption('em', null, InputOption::VALUE_REQUIRED, 'The entity manager to use for this command.')
             ->addOption('shard', null, InputOption::VALUE_REQUIRED, 'The shard connection to use for this command.')
+            ->addArgument('bundle', null, InputOption::VALUE_REQUIRED, 'Bundle')
         ;
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output, $namespace = null, $path = null)
     {
         // EM and DB options cannot be set at same time
         if (null !== $input->getOption('em') && null !== $input->getOption('db')) {
@@ -50,8 +51,24 @@ class MigrationsGenerateDoctrineCommand extends GenerateCommand
         Helper\DoctrineCommandHelper::setApplicationHelper($this->getApplication(), $input);
 
         $configuration = $this->getMigrationConfiguration($input, $output);
-        DoctrineCommand::configureMigrations($this->getApplication()->getKernel()->getContainer(), $configuration);
+        $container = $this->getApplication()->getKernel()->getContainer();
+        DoctrineCommand::configureMigrations($container, $configuration);
+
+        if ($bundle = $input->getArgument('bundle')) {
+            $bundles = $container->get('kernel')->getBundles();
+
+            /** @var Bundle $bundleObject */
+            $bundleObject = $bundles[$bundle];
+
+            $namespace = $bundleObject->getNamespace();
+
+            $path = $bundleObject->getPath() . DIRECTORY_SEPARATOR . 'DoctrineMigrations';
+
+        } else {
+            $namespace = null;
+            $path = null;
+        }
     
-        return parent::execute($input, $output);
+        return parent::execute($input, $output, $namespace, $path);
     }
 }
