@@ -1,5 +1,5 @@
 {
-    "name": "doctrine/doctrine-migrations-bundle",
+    "name": "presspublica/doctrine-migrations-bundle",
     "type": "symfony-bundle",
     "description": "Symfony DoctrineMigrationsBundle",
     "keywords": ["DBAL", "Migrations", "Schema"],
