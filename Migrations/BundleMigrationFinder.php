@@ -52,6 +52,8 @@ class BundleMigrationFinder extends AbstractFinder
             }
         }
 
+        ksort($migrations);
+
         return $migrations;
     }
 }
