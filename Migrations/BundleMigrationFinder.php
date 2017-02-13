@@ -52,7 +52,12 @@ class BundleMigrationFinder extends AbstractFinder
             }
         }
 
-        ksort($migrations);
+        uksort($migrations, function($key1, $key2) {
+            $date1 = intval(preg_replace('/[^\d]/', '', $key1));
+            $date2 = intval(preg_replace('/[^\d]/', '', $key2));
+
+            return $date1 - $date2;
+        });
 
         return $migrations;
     }
